@@ -4,7 +4,7 @@ require 'rake'
 require 'rake/gempackagetask'
 require 'spec/rake/spectask'
 
-GEM = "inploy"
+GEM = "pbrumm-inploy"
 GEM_VERSION = "1.2.0"
 SUMMARY = "Rails deployment made easy"
 AUTHOR = "Diego Carrion"

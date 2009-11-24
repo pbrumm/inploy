@@ -8,6 +8,7 @@ module Inploy
       self.server = :passenger
       @branch = 'master'
       @environment = 'production'
+      self.version_control = :git
     end
 
     def template=(template)
@@ -17,14 +18,18 @@ module Inploy
     def server=(server)
       load_module("servers/#{server}")
     end
-
+    
+    def version_control=(system)
+      load_module("version_control/#{system}")
+    end
+    
     def remote_setup
       if branch.eql? "master"
         checkout = ""
       else
-        checkout = "&& $($(git branch | grep -vq #{branch}) && git checkout -f -b #{branch} origin/#{branch})"
+        checkout = "&& $($(#{branches} | grep -vq #{branch}) && #{checkout(branch)})"
       end
-      remote_run "cd #{path} && git clone --depth 1 #{repository} #{application} && cd #{application} #{checkout} && rake inploy:local:setup environment=#{environment}"
+      remote_run "cd #{path} && #{clone(repository,application)} && cd #{application} #{checkout} && rake inploy:local:setup environment=#{environment}"
     end
 
     def local_setup
@@ -38,14 +43,14 @@ module Inploy
     end
 
     def local_update
-      run "git pull origin #{branch}"
+      run update(branch)
       after_update_code
     end
     
     private
 
     def after_update_code
-      run "git submodule update --init"
+      run update_submodules
       copy_sample_files
       install_gems
       migrate_database
